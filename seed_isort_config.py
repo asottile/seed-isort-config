@@ -13,7 +13,13 @@ from aspy.refactor_imports.classify import classify_import
 from aspy.refactor_imports.classify import ImportType
 
 
-SUPPORTED_CONF_FILES = ('.editorconfig', '.isort.cfg', 'setup.cfg', 'tox.ini')
+DEFAULT_CONF_FILE = '.isort.cfg'
+SUPPORTED_CONF_FILES = (
+    DEFAULT_CONF_FILE,
+    '.editorconfig',
+    'setup.cfg',
+    'tox.ini',
+)
 THIRD_PARTY_RE = re.compile(r'^known_third_party(\s*)=(\s*?)[^\s]*$', re.M)
 
 
@@ -68,7 +74,7 @@ def main(argv=None):
                 f.write(contents)
             break
     else:
-        if os.path.exists('.isort.cfg'):
+        if os.path.exists(DEFAULT_CONF_FILE):
             prefix = 'Updating'
             mode = 'a'
             contents = 'known_third_party = {}\n'.format(third_party)
@@ -81,11 +87,13 @@ def main(argv=None):
 
         print(
             '{} an .isort.cfg with a known_third_party setting. '
-            'Feel free to move the setting to a different config file in '
-            'one of {}...'.format(prefix, ', '.join(SUPPORTED_CONF_FILES)),
+            'Feel free to move the setting elsewhere in one of {}...'.format(
+                prefix,
+                ', '.join(SUPPORTED_CONF_FILES),
+            ),
         )
 
-        with io.open('.isort.cfg', mode, encoding='UTF-8') as f:
+        with io.open(DEFAULT_CONF_FILE, mode, encoding='UTF-8') as f:
             f.write(contents)
 
 
