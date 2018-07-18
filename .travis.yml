@@ -4,6 +4,8 @@ matrix:
         -   env: TOXENV=py27
         -   env: TOXENV=py36
             python: 3.6
+        -   env: TOXENV=py37
+            python: 3.7
         -   env: TOXENV=pypy
             python: pypy
 install: pip install coveralls tox
