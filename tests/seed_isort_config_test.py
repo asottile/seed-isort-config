@@ -53,6 +53,22 @@ def test_integration_isort_cfg(tmpdir):
         assert tmpdir.join('.isort.cfg').read() == expected
 
 
+def test_integration_isort_cfg_defined_stdlib(tmpdir):
+    with tmpdir.as_cwd():
+        conf = '[settings]\nknown_standard_library = pre_commit\n' \
+               'known_third_party=\n'
+        tmpdir.join('.isort.cfg').write(conf)
+        tmpdir.join('f.py').write('import pre_commit\nimport cfgv\n')
+        tmpdir.join('g.py').write('import f\nimport os\n')
+        _make_git()
+
+        assert not main(())
+
+        expected = '[settings]\nknown_standard_library = pre_commit\n' \
+                   'known_third_party=cfgv\n'
+        assert tmpdir.join('.isort.cfg').read() == expected
+
+
 def test_integration_editorconfig(tmpdir):
     with tmpdir.as_cwd():
         tmpdir.join('.editorconfig').write('[*.py]\nknown_third_party=cfgv\n')

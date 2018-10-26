@@ -16,6 +16,7 @@ from aspy.refactor_imports.classify import ImportType
 ENV_BLACKLIST = frozenset(('GIT_LITERAL_PATHSPECS', 'GIT_GLOB_PATHSPECS'))
 SUPPORTED_CONF_FILES = ('.editorconfig', '.isort.cfg', 'setup.cfg', 'tox.ini')
 THIRD_PARTY_RE = re.compile(r'^known_third_party(\s*)=(\s*?)[^\s]*$', re.M)
+STDLIB_RE = re.compile(r'^known_standard_library(\s*)=(\s*?)([^\s]*$)', re.M)
 
 
 class Visitor(ast.NodeVisitor):
@@ -75,7 +76,8 @@ def main(argv=None):
     filenames = [f for f in filenames if not exclude.search(f)]
 
     appdirs = args.application_directories.split(':')
-    third_party = ','.join(sorted(third_party_imports(filenames, appdirs)))
+    collected_third_party = third_party_imports(filenames, appdirs)
+    force_standard_library = set()
 
     for filename in SUPPORTED_CONF_FILES:
         filename = os.path.join(args.settings_path, filename)
@@ -85,6 +87,15 @@ def main(argv=None):
         with io.open(filename, encoding='UTF-8') as f:
             contents = f.read()
 
+        stdlib_match = next(STDLIB_RE.finditer(contents), None)
+        if stdlib_match:
+            stdlib_enumeration = stdlib_match.groups()[-1].replace(' ', '')
+            force_standard_library = set(stdlib_enumeration.split(','))
+
+        third_party = third_party_formatted(
+            collected_third_party,
+            force_standard_library,
+        )
         if THIRD_PARTY_RE.search(contents):
             replacement = r'known_third_party\1=\2{}'.format(third_party)
             contents = THIRD_PARTY_RE.sub(replacement, contents)
@@ -92,6 +103,10 @@ def main(argv=None):
                 f.write(contents)
             break
     else:
+        third_party = third_party_formatted(
+            collected_third_party,
+            force_standard_library,
+        )
         filename = os.path.join(args.settings_path, '.isort.cfg')
         if os.path.exists(filename):
             prefix = 'Updating'
@@ -118,6 +133,11 @@ def main(argv=None):
 
         with io.open(filename, mode, encoding='UTF-8') as f:
             f.write(contents)
+
+
+def third_party_formatted(collected_third_party, standard_library):
+    filtered = [i for i in collected_third_party if i not in standard_library]
+    return ','.join(sorted(filtered))
 
 
 if __name__ == '__main__':
