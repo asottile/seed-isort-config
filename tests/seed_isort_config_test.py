@@ -343,7 +343,7 @@ def test_missing_git_from_path(tmpdir):
             assert msg == 'Cannot find git. Make sure it is in your PATH'
 
 
-def test_newline_preserve(tmpdir):
+def test_newlines_preserved(tmpdir):
     with tmpdir.as_cwd():
         cfg = tmpdir.join('.isort.cfg')
         cfg.write_binary(b'[settings]\r\nknown_third_party=\n')
