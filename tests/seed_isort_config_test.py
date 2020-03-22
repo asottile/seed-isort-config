@@ -13,10 +13,11 @@ from seed_isort_config import THIRD_PARTY_RE
 @pytest.mark.parametrize(
     ('s', 'expected_groups'),
     (
-        ('[isort]\nknown_third_party=\n', ('', '')),
-        ('[isort]\nknown_third_party = foo\n', (' ', ' ')),
-        ('[isort]\nknown_third_party\t=\tfoo\n', ('\t', '\t')),
-        ('[isort]\nknown_third_party =\nknown_wat=wat\n', (' ', '')),
+        ('[isort]\nknown_third_party=\n', ('', '', '')),
+        ('[isort]\nknown_third_party = foo\n', (' ', ' ', '')),
+        ('[isort]\nknown_third_party\t=\tfoo\n', ('\t', '\t', '')),
+        ('[isort]\nknown_third_party =\nknown_wat=wat\n', (' ', '', '')),
+        ('[isort]\nknown_third_party =\r\nknown_wat=wat\r\n', (' ', '', '\r')),
     ),
 )
 def test_known_third_party_re(s, expected_groups):
@@ -295,7 +296,7 @@ def test_exclude(tmpdir):
 def test_returns_zero_no_changes(tmpdir):
     with tmpdir.as_cwd():
         cfg = tmpdir.join('.isort.cfg')
-        cfg.write_binary(b'[settings]\nknown_third_party=cfgv\n')
+        cfg.write(b'[settings]\nknown_third_party=cfgv\n')
         tmpdir.join('f.py').write('import cfgv\n')
         _make_git()
 
@@ -307,7 +308,7 @@ def test_returns_zero_no_changes(tmpdir):
 def test_returns_zero_no_changes_pyproject_toml(tmpdir):
     with tmpdir.as_cwd():
         cfg = tmpdir.join('pyproject.toml')
-        cfg.write_binary(b'[settings]\nknown_third_party=["cfgv"]\n')
+        cfg.write(b'[settings]\nknown_third_party=["cfgv"]\n')
         tmpdir.join('f.py').write('import cfgv\n')
         _make_git()
 
@@ -346,11 +347,11 @@ def test_missing_git_from_path(tmpdir):
 def test_newlines_preserved(tmpdir):
     with tmpdir.as_cwd():
         cfg = tmpdir.join('.isort.cfg')
-        cfg.write_binary(b'[settings]\r\nknown_third_party=\n')
+        cfg.write_binary(b'[settings]\nknown_third_party=\r\n')
         tmpdir.join('g.py').write('import cfgv\n')
         _make_git()
 
         assert main(()) == 1
 
-        expected = b'[settings]\r\nknown_third_party=cfgv\n'
+        expected = b'[settings]\nknown_third_party=cfgv\r\n'
         assert cfg.read_binary() == expected
