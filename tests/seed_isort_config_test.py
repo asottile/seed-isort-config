@@ -295,7 +295,7 @@ def test_exclude(tmpdir):
 def test_returns_zero_no_changes(tmpdir):
     with tmpdir.as_cwd():
         cfg = tmpdir.join('.isort.cfg')
-        cfg.write('[settings]\nknown_third_party=cfgv\n')
+        cfg.write_binary(b'[settings]\nknown_third_party=cfgv\n')
         tmpdir.join('f.py').write('import cfgv\n')
         _make_git()
 
@@ -307,7 +307,7 @@ def test_returns_zero_no_changes(tmpdir):
 def test_returns_zero_no_changes_pyproject_toml(tmpdir):
     with tmpdir.as_cwd():
         cfg = tmpdir.join('pyproject.toml')
-        cfg.write('[settings]\nknown_third_party=["cfgv"]\n')
+        cfg.write_binary(b'[settings]\nknown_third_party=["cfgv"]\n')
         tmpdir.join('f.py').write('import cfgv\n')
         _make_git()
 
@@ -343,59 +343,14 @@ def test_missing_git_from_path(tmpdir):
             assert msg == 'Cannot find git. Make sure it is in your PATH'
 
 
-def test_newline_grab(tmpdir):
-    with tmpdir.as_cwd():
-        tmpcfg = tmpdir.join('.isort.cfg')
-        with open(tmpcfg.strpath, 'w', newline='') as cfg:
-            cfg.write('[settings]\r\nknown_third_party=\r\n')
-        tmpdir.join('g.py').write('import cfgv\n')
-        _make_git()
-
-        assert main(()) == 1
-
-        expected = '[settings]\r\nknown_third_party=cfgv\r\n'
-        with open(tmpcfg.strpath, newline='') as cfg:
-            assert cfg.read() == expected
-
-
 def test_newline_preserve(tmpdir):
     with tmpdir.as_cwd():
-        tmpcfg = tmpdir.join('.isort.cfg')
-        with open(tmpcfg.strpath, 'w', newline='') as cfg:
-            cfg.write('[settings]\r\nknown_third_party=\r\n')
+        cfg = tmpdir.join('.isort.cfg')
+        cfg.write_binary(b'[settings]\r\nknown_third_party=\n')
         tmpdir.join('g.py').write('import cfgv\n')
         _make_git()
 
         assert main(()) == 1
 
-        expected = '[settings]\r\nknown_third_party=cfgv\r\n'
-        with open(tmpcfg.strpath, newline='') as cfg:
-            assert cfg.read() == expected
-
-        with open(tmpcfg.strpath, 'w', newline='') as cfg:
-            cfg.write('[settings]\nknown_third_party=\n')
-        tmpdir.join('g.py').write('import cfgv\n')
-        _make_git()
-
-        assert main(()) == 1
-
-        expected = '[settings]\nknown_third_party=cfgv\n'
-        with open(tmpcfg.strpath, newline='') as cfg:
-            assert cfg.read() == expected
-
-
-def test_newline_mixed(tmpdir):
-    with tmpdir.as_cwd():
-        tmpcfg = tmpdir.join('.isort.cfg')
-        with open(tmpcfg.strpath, 'w', newline='') as cfg:
-            cfg.write('[settings]\r\nknown_third_party=\n')
-        tmpdir.join('g.py').write('import cfgv\n')
-        _make_git()
-
-        assert main(()) == 1
-
-        # In case of mixed line endings we are using first one returned
-        # by fileobj.newlines
-        expected = '[settings]\nknown_third_party=cfgv\n'
-        with open(tmpcfg.strpath, newline='') as cfg:
-            assert cfg.read() == expected
+        expected = b'[settings]\r\nknown_third_party=cfgv\n'
+        assert cfg.read_binary() == expected
