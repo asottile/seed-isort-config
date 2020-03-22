@@ -122,9 +122,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         else:
             load = ini_load
             dump = ini_dump
-
+        # use universal line endings (based on system)
+        nl = None
         with open(filename, encoding='UTF-8') as f:
             contents = f.read()
+            # Grab current newlines
+            if type(f.newlines) is tuple:
+                nl = f.newlines[0]
+            else:
+                nl = f.newlines
 
         for match in KNOWN_OTHER_RE.finditer(contents):
             third_party -= set(load(match.group(2)))
@@ -136,7 +142,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             if new_contents == contents:
                 return 0
             else:
-                with open(filename, 'w', encoding='UTF-8') as f:
+                with open(filename, 'w', encoding='UTF-8', newline=nl) as f:
                     f.write(new_contents)
                 return 1
     else:
