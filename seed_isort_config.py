@@ -95,6 +95,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             'Defaults to `%(default)s`'
         ),
     )
+    parser.add_argument(
+        "--verbose", action="store_true",
+        help="Print changes to stdout.",
+    )
     args = parser.parse_args(argv)
 
     cmd = ('git', 'ls-files', '--', '*.py')
