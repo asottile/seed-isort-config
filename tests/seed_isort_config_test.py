@@ -370,3 +370,21 @@ def test_newlines_preserved(tmpdir):
 
         expected = b'[settings]\nknown_third_party=cfgv\r\n'
         assert cfg.read_binary() == expected
+
+
+def test_verbose_output(tmpdir, capsys):
+    with tmpdir.as_cwd():
+        cfg = tmpdir.join('.isort.cfg')
+        cfg.write_binary(b'[settings]\nknown_third_party=test\r\n')
+        tmpdir.join('g.py').write('import cfgv\n')
+        _make_git()
+
+        assert main(("--verbose",)) == 1
+
+        assert (
+            "The 'known_third_party' section in '.isort.cfg' was "
+            "changed:\nAdded: {'cfgv'}\nRemoved: {'test'}"
+        ) in capsys.readouterr().out
+
+        expected = b'[settings]\nknown_third_party=cfgv\r\n'
+        assert cfg.read_binary() == expected
