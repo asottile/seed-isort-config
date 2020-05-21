@@ -144,7 +144,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 with open(filename, 'w', encoding='UTF-8', newline='') as f:
                     f.write(new_contents)
                 if args.verbose:
-                    known = set(filter(None, load(file_third_party.group(4))))
+                    known = set(filter(None, load(file_third_party.group(3))))
                     print(
                         f'The \'known_third_party\' section in '
                         f'\'{os.path.basename(filename)}\' was changed:\n'
