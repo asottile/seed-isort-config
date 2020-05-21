@@ -133,7 +133,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         for match in KNOWN_OTHER_RE.finditer(contents):
             third_party -= set(load(match.group(2)))
 
-        if THIRD_PARTY_RE.search(contents):
+        file_third_party = THIRD_PARTY_RE.search(contents)
+        if file_third_party:
             third_party_s = dump(sorted(third_party))
             replacement = fr'known_third_party\1=\2{third_party_s}\4'
             new_contents = THIRD_PARTY_RE.sub(replacement, contents)
@@ -142,6 +143,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             else:
                 with open(filename, 'w', encoding='UTF-8', newline='') as f:
                     f.write(new_contents)
+                if args.verbose:
+                    known = set(filter(None, load(file_third_party.group(4))))
+                    print(
+                        f'The \'known_third_party\' section in '
+                        f'\'{os.path.basename(filename)}\' was changed:\n'
+                        f"Added: {(third_party - known) or None}\n"
+                        f"Removed: {(known - third_party) or None}",
+                    )
                 return 1
     else:
         filename = os.path.join(args.settings_path, '.isort.cfg')
