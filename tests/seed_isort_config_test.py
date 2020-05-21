@@ -13,16 +13,25 @@ from seed_isort_config import THIRD_PARTY_RE
 @pytest.mark.parametrize(
     ('s', 'expected_groups'),
     (
-        ('[isort]\nknown_third_party=\n', ('', '', '')),
-        ('[isort]\nknown_third_party = foo\n', (' ', ' ', '')),
-        ('[isort]\nknown_third_party\t=\tfoo\n', ('\t', '\t', '')),
-        ('[isort]\nknown_third_party =\nknown_wat=wat\n', (' ', '', '')),
-        ('[isort]\r\nknown_third_party=\r\n', ('', '', '\r')),
-        ('[isort]\r\nknown_third_party = foo\r\n', (' ', ' ', '\r')),
-        ('[isort]\r\nknown_third_party\t=\tfoo\r\n', ('\t', '\t', '\r')),
+        ('[isort]\nknown_third_party=\n', ('', '', '', '')),
+        ('[isort]\nknown_third_party = foo\n', (' ', ' ', 'foo', '')),
+        ('[isort]\nknown_third_party\t=\tfoo\n', ('\t', '\t', 'foo', '')),
+        (
+            '[isort]\nknown_third_party =\nknown_wat=wat\n',
+            (' ', '', '', ''),
+        ),
+        ('[isort]\r\nknown_third_party=\r\n', ('', '', '', '\r')),
+        (
+            '[isort]\r\nknown_third_party = foo\r\n',
+            (' ', ' ', 'foo', '\r'),
+        ),
+        (
+            '[isort]\r\nknown_third_party\t=\tfoo\r\n',
+            ('\t', '\t', 'foo', '\r'),
+        ),
         (
             '[isort]\r\nknown_third_party =\r\nknown_wat=wat\r\n',
-            (' ', '', '\r'),
+            (' ', '', '', '\r'),
         ),
     ),
 )
