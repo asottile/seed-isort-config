@@ -1,5 +1,6 @@
 import argparse
 import ast
+import os
 import os.path
 import re
 import subprocess
@@ -77,6 +78,14 @@ def toml_dump(imports: Sequence[str]) -> str:
     return '[{}]'.format(', '.join(f'"{i}"' for i in imports))
 
 
+def run_git(*args):
+    env = {k: v for k, v in os.environ.items() if k not in ENV_BLACKLIST}
+    try:
+        return subprocess.check_output(("git",) + args, env=env).decode('UTF-8')
+    except OSError:
+        raise OSError('Cannot find git. Make sure it is in your PATH')
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--extra', action='append', default=[])
@@ -97,12 +106,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    cmd = ('git', 'ls-files', '--', '*.py')
-    env = {k: v for k, v in os.environ.items() if k not in ENV_BLACKLIST}
-    try:
-        out = subprocess.check_output(cmd, env=env).decode('UTF-8')
-    except OSError:
-        raise OSError('Cannot find git. Make sure it is in your PATH')
+    toplevel = run_git('rev-parse', '--show-toplevel')
+    os.chdir(toplevel.strip("\n"))
+
+    out = run_git('ls-files', '--', '*.py')
     filenames = out.splitlines() + args.extra
 
     exclude = re.compile(args.exclude)
