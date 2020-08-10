@@ -4,10 +4,13 @@
 seed-isort-config
 =================
 
+**Note:** This tool was developed as a workaround for isort's behavior before
+version 5. If you upgrade to isort 5+, you won't need seed-isort-config.
+
 Statically populate the `known_third_party` `isort` setting.
 
-[`isort`][isort] when run in isolation is not the best at determining what
-dependencies are third party.
+[`isort`][isort] (before version 5) is not the best at determining what
+dependencies are third party, when run in isolation.
 
 [`aspy.refactor_imports`][aspy.refactor_imports] is fortunately much better at
 this static analysis.
